@@ -1,0 +1,39 @@
+name: Loki Study iPhone build
+on:
+  push:
+    branches: [main]
+    paths: [LokiStudy-public-ios-source.zip, .github/workflows/build.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Extract reviewed source
+        run: |
+          python3 -c "import hashlib; assert hashlib.sha256(open('LokiStudy-public-ios-source.zip','rb').read()).hexdigest()=='9d712c56940cab0cca538619514eafe1faa833536f6d2103afad7147344e8014'"
+          unzip -q LokiStudy-public-ios-source.zip -d loki-study
+      - name: Install XcodeGen
+        run: command -v xcodegen || brew install xcodegen
+      - name: Check learning rules
+        run: |
+          node loki-study/tests/core.test.cjs
+          node loki-study/scripts/validate_listening.cjs
+      - name: Compile simulator and iPhone architecture
+        working-directory: loki-study/ios
+        run: bash build.sh all
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: loki-study-ios
+          path: |
+            loki-study/ios/build/*.zip
+            loki-study/ios/build/*.log
+          retention-days: 3
