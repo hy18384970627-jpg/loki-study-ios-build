@@ -2,7 +2,7 @@ name: Loki Study iPhone build
 on:
   push:
     branches: [main]
-    paths: [LokiStudy-public-ios-source.zip, .github/workflows/build.yml]
+    paths: [LokiStudy-qr-pairing-source.zip, .github/workflows/build.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,8 +18,8 @@ jobs:
           persist-credentials: false
       - name: Extract reviewed source
         run: |
-          python3 -c "import hashlib; assert hashlib.sha256(open('LokiStudy-public-ios-source.zip','rb').read()).hexdigest()=='9d712c56940cab0cca538619514eafe1faa833536f6d2103afad7147344e8014'"
-          unzip -q LokiStudy-public-ios-source.zip -d loki-study
+          python3 -c "import hashlib; assert hashlib.sha256(open('LokiStudy-qr-pairing-source.zip','rb').read()).hexdigest()=='1d7f96187c184553ad5ccb6c4ff9ad265bf588910cdba18b43b35df2054c34ea'"
+          unzip -q LokiStudy-qr-pairing-source.zip -d loki-study
       - name: Install XcodeGen
         run: command -v xcodegen || brew install xcodegen
       - name: Check learning rules
