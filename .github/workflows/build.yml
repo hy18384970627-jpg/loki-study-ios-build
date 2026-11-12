@@ -2,7 +2,7 @@ name: Loki Study iPhone build
 on:
   push:
     branches: [main]
-    paths: [LokiStudy-redesign-20261112-source.zip, .github/workflows/build.yml]
+    paths: [LokiStudy-review-crash-20261112-source.zip, .github/workflows/build.yml]
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,14 +18,18 @@ jobs:
           persist-credentials: false
       - name: Extract reviewed source
         run: |
-          python3 -c "import hashlib; assert hashlib.sha256(open('LokiStudy-redesign-20261112-source.zip','rb').read()).hexdigest()=='8c9649cd806ae7560cf504fa08dadc2beeee1cc67aad07f7ebdc8f4a4f05d2ee'"
-          unzip -q LokiStudy-redesign-20261112-source.zip -d loki-study
+          python3 -c "import hashlib; assert hashlib.sha256(open('LokiStudy-review-crash-20261112-source.zip','rb').read()).hexdigest()=='16f337869cf557318540925f4eacb6c7f9296c22d41bdaca69a4ba7a99b1ba09'"
+          unzip -q LokiStudy-review-crash-20261112-source.zip -d loki-study
       - name: Install XcodeGen
         run: command -v xcodegen || brew install xcodegen
       - name: Check learning rules
         run: |
           node loki-study/tests/core.test.cjs
           node loki-study/scripts/validate_listening.cjs
+      - name: Verify native JSON boundary
+        run: |
+          swiftc loki-study/ios/Sources/App/StudyStorage.swift loki-study/ios/Tests/main.swift -o /tmp/study-json-boundary
+          /tmp/study-json-boundary
       - name: Compile simulator and iPhone architecture
         working-directory: loki-study/ios
         run: bash build.sh all
