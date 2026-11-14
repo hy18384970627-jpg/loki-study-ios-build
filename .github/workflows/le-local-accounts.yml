@@ -1,0 +1,43 @@
+name: LE native simulator lifecycle
+on:
+  push:
+    branches: [le-native-smoke-61b79698fd]
+permissions:
+  contents: read
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify source and select Xcode
+        run: |
+          echo "61b79698fd8114838215dd90c468215c1e057ff30db81b1cf82693883fbcb80f  LEWords-public-source.zip" | shasum -a 256 -c -
+          unzip -q LEWords-public-source.zip -d le-words
+          if [ -d /Applications/Xcode_26.3.app/Contents/Developer ]; then
+            echo "DEVELOPER_DIR=/Applications/Xcode_26.3.app/Contents/Developer" >> "$GITHUB_ENV"
+          fi
+      - name: Check native account isolation
+        working-directory: le-words
+        run: |
+          mkdir -p ios/build
+          swiftc ios/Sources/App/StudyAccounts.swift tests/accounts/main.swift -o ios/build/account-tests
+          ios/build/account-tests | tee ios/build/account-tests.log
+      - name: Check learning rules
+        run: node le-words/tests/core.test.cjs
+      - name: Install XcodeGen
+        run: command -v xcodegen || brew install xcodegen
+      - name: Compile simulator and iPhone
+        working-directory: le-words/ios
+        run: cd .. && LE_STAGE=. bash simulator_smoke.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: le-local-accounts
+          path: |
+            le-words/ios/build/*.zip
+            le-words/ios/build/*.log
+            le-words/ios/build/native-screenshots/**
+          retention-days: 3
